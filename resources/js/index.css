@@ -1,0 +1,238 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 228 28% 5%;
+    --foreground: 210 40% 96%;
+
+    --card: 228 28% 8%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 228 28% 8%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 230 80% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 270 60% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 228 20% 13%;
+    --muted-foreground: 215 20% 55%;
+
+    --accent: 270 60% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 228 15% 15%;
+    --input: 228 15% 15%;
+    --ring: 230 80% 60%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 228 28% 6%;
+    --sidebar-foreground: 210 40% 85%;
+    --sidebar-primary: 230 80% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 228 20% 13%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 228 15% 13%;
+    --sidebar-ring: 230 80% 60%;
+
+    /* These derive from --primary/--secondary/--background/--card rather than hardcoding hsl()
+       literals, so an admin-configured brand color (Site Settings -> Colors) actually reaches
+       the headline gradient, primary buttons, card glow and glassmorphism panels below — those
+       previously stayed locked to the original indigo/purple regardless of what was configured. */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(var(--background)));
+    --gradient-glow: linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--secondary) / 0.15));
+    --shadow-glow: 0 0 30px hsl(var(--primary) / 0.12), 0 0 60px hsl(var(--secondary) / 0.06);
+    --shadow-card: 0 4px 32px hsl(0 0% 0% / 0.5);
+    --shadow-glow-strong: 0 0 40px hsl(var(--primary) / 0.25), 0 0 80px hsl(var(--secondary) / 0.12);
+
+    --font-display: 'Orbitron', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-button: 'Inter', sans-serif;
+  }
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  overflow: visible !important;
+  @apply bg-background text-foreground;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  overflow: visible !important;
+}
+
+/* Custom sleek scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(228 20% 20%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary));
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+  }
+
+  button, [role="button"], input[type="submit"] {
+    font-family: var(--font-button);
+  }
+}
+
+@layer utilities {
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-bg {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-border {
+    position: relative;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: var(--gradient-primary);
+    z-index: -1;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    padding: 1px;
+  }
+
+  .glow-card {
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.4s ease, transform 0.4s ease, border-color 0.4s ease;
+  }
+
+  .glow-card:hover {
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-4px);
+  }
+
+  .glass {
+    backdrop-filter: blur(20px) saturate(180%);
+    background: hsl(var(--background) / 0.75);
+  }
+
+  .glass-card {
+    backdrop-filter: blur(16px) saturate(150%);
+    background: hsl(var(--card) / 0.6);
+    border: 1px solid hsl(0 0% 100% / 0.05);
+  }
+
+  .glass-card:hover {
+    background: hsl(var(--card) / 0.7);
+    border-color: hsl(var(--primary) / 0.3);
+  }
+
+  .btn-glow {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .btn-glow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: var(--gradient-primary);
+    filter: blur(12px);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1;
+  }
+
+  .btn-glow:hover::before {
+    opacity: 0.6;
+  }
+
+  .section-padding {
+    @apply py-14 lg:py-20;
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  33% { transform: scale(1.05) rotate(1deg); }
+  66% { transform: scale(0.97) rotate(-1deg); }
+}
+
+.animate-gradient-shift {
+  animation: gradient-shift 8s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
