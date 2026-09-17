@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import api from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import GameCard, { GameAccessRequest } from "@/components/GameCard";
@@ -159,6 +159,51 @@ const Homepage = () => {
   }, [fetchAccessRequests]);
 
   const { hero, stats_banner, games_section, transfers_section, features_section, testimonials_section, faq_section, cta_section, footer, navbar } = cfg;
+
+  const displayPaymentMethods = useMemo(() => {
+    const list: { key: string; name: string; logo_url: string }[] = [];
+    const seenNames = new Set<string>();
+    const seenUrls = new Set<string>();
+
+    const getNormName = (name: string) => {
+      const norm = (name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (!norm || norm === "paymentmethod" || norm === "payment") return null;
+      if (norm === "gpay") return "googlepay";
+      return norm;
+    };
+
+    // 1. Process active payment gateways first
+    for (const pg of paymentGateways) {
+      if (!pg.logo_url) continue;
+      const urlKey = pg.logo_url.trim().toLowerCase();
+      const normName = getNormName(pg.name);
+
+      if (seenUrls.has(urlKey) || (normName && seenNames.has(normName))) {
+        continue;
+      }
+      seenUrls.add(urlKey);
+      if (normName) seenNames.add(normName);
+      list.push({ key: `gateway-${pg.id}`, name: pg.name, logo_url: pg.logo_url });
+    }
+
+    // 2. Process extra payment methods from footer config
+    const extraMethods = footer.extra_payment_methods || [];
+    for (let i = 0; i < extraMethods.length; i++) {
+      const pm = extraMethods[i];
+      if (!pm.logo_url) continue;
+      const urlKey = pm.logo_url.trim().toLowerCase();
+      const normName = getNormName(pm.name);
+
+      if (seenUrls.has(urlKey) || (normName && seenNames.has(normName))) {
+        continue;
+      }
+      seenUrls.add(urlKey);
+      if (normName) seenNames.add(normName);
+      list.push({ key: `extra-${i}`, name: pm.name, logo_url: pm.logo_url });
+    }
+
+    return list;
+  }, [paymentGateways, footer.extra_payment_methods]);
 
   // Mirrors ProtectedRoute's own redirect in reverse: that one sends a logged-OUT user here from
   // any protected page, but nothing sent a logged-IN user away from here — so opening this public
@@ -685,21 +730,13 @@ const Homepage = () => {
           </div>
         )}
 
-        {/* Payment Methods Logos — real configured payment gateways (Site Settings -> Payment
-            Gateways) shown automatically, plus any admin-added extra logos (Landing Page editor
-            copy explicitly promises this: "besides the ones from your payment gateways"). The
-            gateway fetch used to be dead — fetched, stored, then never rendered anywhere. */}
-        {(paymentGateways.filter(pg => pg.logo_url).length > 0 || (footer.extra_payment_methods || []).length > 0) && (
+        {/* Payment Methods Logos — real configured payment gateways shown automatically, plus any extra unique logos */}
+        {displayPaymentMethods.length > 0 && (
           <div className="relative z-10 mx-auto max-w-5xl px-4 mb-10">
             <p className="text-[10px] font-semibold uppercase tracking-[.3em] text-muted-foreground/50 text-center mb-4">Accepted Payment Methods</p>
             <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3">
-              {paymentGateways.filter(pg => pg.logo_url).map((pg) => (
-                <div key={`gateway-${pg.id}`} className="flex items-center justify-center h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg bg-muted/30 border border-border/20 transition-all duration-200 hover:border-primary/20 hover:bg-muted/50">
-                  <img loading="lazy" decoding="async" src={pg.logo_url!} alt={pg.name} className="h-5 sm:h-6 max-w-[60px] sm:max-w-[72px] object-contain opacity-70 hover:opacity-100 transition-opacity" title={pg.name} />
-                </div>
-              ))}
-              {(footer.extra_payment_methods || []).filter(pm => pm.logo_url).map((pm, i) => (
-                <div key={`extra-${i}`} className="flex items-center justify-center h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg bg-muted/30 border border-border/20 transition-all duration-200 hover:border-primary/20 hover:bg-muted/50">
+              {displayPaymentMethods.map((pm) => (
+                <div key={pm.key} className="flex items-center justify-center h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg bg-muted/30 border border-border/20 transition-all duration-200 hover:border-primary/20 hover:bg-muted/50">
                   <img loading="lazy" decoding="async" src={pm.logo_url} alt={pm.name} className="h-5 sm:h-6 max-w-[60px] sm:max-w-[72px] object-contain opacity-70 hover:opacity-100 transition-opacity" title={pm.name} />
                 </div>
               ))}
